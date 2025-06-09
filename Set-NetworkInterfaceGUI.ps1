@@ -214,7 +214,7 @@ function Configure-NetworkAdapter-GUI {
         if ($configType -eq "DHCP") {
             Set-NetIPInterface -InterfaceIndex $adapter.ifIndex -Dhcp Enabled
             Set-DnsClientServerAddress -InterfaceIndex $adapter.ifIndex -ResetServerAddresses
-            Remove-NetRoute -InterfaceIndex $adapter.ifIndex -DestinationPrefix "0.0.0.0/0"
+            Remove-NetRoute -InterfaceIndex $adapter.ifIndex -DestinationPrefix "0.0.0.0/0" -Confirm:$false
             [System.Windows.Forms.MessageBox]::Show("DHCP has been configured for $adapterName.","Success")
         }
         elseif ($configType -eq "Static IP") {
