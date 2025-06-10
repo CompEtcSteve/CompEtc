@@ -84,18 +84,19 @@ function Configure-NetworkAdapter {
 
     Write-Host "You selected: $($adapter.Name)" -ForegroundColor Green
 
-    # Ask user to choose DHCP, Static IP, or Multi-Homing
+    # Ask user to choose DHCP, Static IP, Multi-Homing, or Change Only DNS
     Write-Host "1: Use DHCP"
     Write-Host "2: Use Static IP"
     Write-Host "3: Configure Multi-Homing"
-    $choice = Read-Host "Enter your choice (1, 2, or 3)"
+    Write-Host "4: Change Only DNS"
+    $choice = Read-Host "Enter your choice (1, 2, 3, or 4)"
 
     if ($choice -eq "1") {
         # Configure DHCP using netsh
         Write-Host "Configuring DHCP for $($adapter.Name)..."
         Set-NetIPInterface -InterfaceIndex $($adapter.ifIndex) -Dhcp Enabled
         Set-DnsClientServerAddress -InterfaceIndex $($adapter.ifIndex) -ResetServerAddresses
-	Remove-NetRoute -InterfaceIndex $($adapter.ifIndex) -DestinationPrefix "0.0.0.0/0" -Confirm:$false
+        Remove-NetRoute -InterfaceIndex $($adapter.ifIndex) -DestinationPrefix "0.0.0.0/0" -Confirm:$false
         Write-Host "DHCP has been configured." -ForegroundColor Green
     } elseif ($choice -eq "2") {
         # Configure Static IP using netsh
@@ -103,15 +104,21 @@ function Configure-NetworkAdapter {
         $subnetMask = Read-Host "Enter the subnet mask (e.g., 255.255.255.0 or /24)"
         $subnetMask = Detect-SubnetFormat -InputData $subnetMask  # Ensure correct format
         $gateway = Read-Host "Enter the gateway address (e.g., 192.168.1.1) or leave blank"
-        $dns = Read-Host "Enter the DNS server address (e.g., 8.8.8.8) or leave blank"
+        $dns1 = Read-Host "Enter the primary DNS server address (e.g., 8.8.8.8) or leave blank"
+        if ($dns1) {
+	    $dns2 = Read-Host "Enter the secondary DNS server address (or leave blank if none)"
+     	}
 
         Write-Host "Configuring static IP for $($adapter.Name)..."
         Set-NetIPInterface -InterfaceIndex $($adapter.ifIndex) -Dhcp Disabled
         # Using netsh since it will work on offline adapters
         netsh interface ip set address name="$($adapter.Name)" static $ipAddress $subnetMask $gateway
-        # May add ability to set secondary DNS at a future point
-        if ($dns) {
-            netsh interface ip set dns name="$($adapter.Name)" static $dns
+        # Set DNS servers
+        if ($dns1) {
+            netsh interface ip set dns name="$($adapter.Name)" static $dns1 primary
+            if ($dns2) {
+                netsh interface ip add dns name="$($adapter.Name)" $dns2 index=2
+            }
         }
         Write-Host "Static IP configuration has been applied." -ForegroundColor Green
     } elseif ($choice -eq "3") {
@@ -136,6 +143,21 @@ function Configure-NetworkAdapter {
             Write-Host "Configuring additional IP for $($adapter.Name)..."
             netsh interface ip add address name="$($adapter.Name)" addr=$additionalIP mask=$additionalSubnet
             Write-Host "Additional IP ($additionalIP) has been configured." -ForegroundColor Green
+        }
+    } elseif ($choice -eq "4") {
+        # Change only DNS
+        $dns1 = Read-Host "Enter the primary DNS server address (e.g., 8.8.8.8)"
+        $dns2 = Read-Host "Enter the secondary DNS server address (or leave blank if none)"
+        if ($dns1) {
+            netsh interface ip set dns name="$($adapter.Name)" static $dns1 primary
+            if ($dns2) {
+                netsh interface ip add dns name="$($adapter.Name)" $dns2 index=2
+                Write-Host "DNS servers have been changed to $dns1 and $dns2 for $($adapter.Name)." -ForegroundColor Green
+            } else {
+                Write-Host "DNS server has been changed to $dns1 for $($adapter.Name)." -ForegroundColor Green
+            }
+        } else {
+            Write-Host "No DNS server entered. DNS change skipped." -ForegroundColor Yellow
         }
     } else {
         Write-Host "Invalid choice!" -ForegroundColor Red
