@@ -95,7 +95,7 @@ function Configure-NetworkAdapter {
         Write-Host "Configuring DHCP for $($adapter.Name)..."
         Set-NetIPInterface -InterfaceIndex $($adapter.ifIndex) -Dhcp Enabled
         Set-DnsClientServerAddress -InterfaceIndex $($adapter.ifIndex) -ResetServerAddresses
-		Remove-NetRoute -InterfaceIndex $($adapter.ifIndex) -DestinationPrefix "0.0.0.0/0" -Confirm:$false
+	Remove-NetRoute -InterfaceIndex $($adapter.ifIndex) -DestinationPrefix "0.0.0.0/0" -Confirm:$false
         Write-Host "DHCP has been configured." -ForegroundColor Green
     } elseif ($choice -eq "2") {
         # Configure Static IP using netsh
