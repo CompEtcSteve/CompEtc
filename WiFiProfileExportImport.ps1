@@ -242,11 +242,10 @@ if (-not ($Export -or $Import)) {
                             continue
                         }
                         "3" { $mainChoice = Show-MainMenu }
-                        default { Write-Host "Invalid selection." }
                     }
                 }
             }
-            "3" { Exit }
+            "3" { exit }
         }
     }
 }
