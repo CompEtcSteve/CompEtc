@@ -1,14 +1,3 @@
-$validMasks = @(
-                "255.255.255.255", "255.255.255.254", "255.255.255.252", "255.255.255.248",
-                "255.255.255.240", "255.255.255.224", "255.255.255.192", "255.255.255.128",
-                "255.255.255.0", "255.255.254.0", "255.255.252.0", "255.255.248.0",
-                "255.255.240.0", "255.255.224.0", "255.255.192.0", "255.255.128.0",
-                "255.255.0.0", "255.254.0.0", "255.252.0.0", "255.248.0.0",
-                "255.240.0.0", "255.224.0.0", "255.192.0.0", "255.128.0.0",
-                "255.0.0.0", "254.0.0.0", "252.0.0.0", "248.0.0.0",
-                "240.0.0.0", "224.0.0.0", "192.0.0.0", "128.0.0.0",
-                "0.0.0.0"
-                )
 function Convert-SubnetToDottedDecimal {
     param (
         [int]$CIDR
@@ -41,34 +30,40 @@ function Detect-SubnetFormat {
     param (
         [string]$InputData
     )
-    try {
-        # Check if input is a valid dotted decimal subnet
-        if ($InputData -match '^((25[0-5]|2[0-4][0-9]|1?[0-9][0-9])\.){3}(25[0-5]|2[0-4][0-9]|1?[0-9][0-9])$') {
-            # Validate subnet mask further by ensuring it's one of the possible valid masks
-            )
-            if ($validMasks -contains $InputData) {
-                Write-Host $InputData
-                return $InputData
-            } else {
-                Write-Host "Invalid dotted decimal subnet mask."
-                throw "Invalid dotted decimal subnet mask."
-            }
-        }
 
-        # Check if input is in CIDR notation and convert it
-        elseif ($InputData -match '^\/([0-9]|[12][0-9]|3[0-2])$') {
-            $cidrValue = $InputData.TrimStart("/")
-            return Convert-SubnetToDottedDecimal -CIDR $cidrValue  # Ensure return statement
-        }
+    # List of valid subnet masks
+    $validMasks = @(
+        "255.255.255.255", "255.255.255.254", "255.255.255.252", "255.255.255.248",
+        "255.255.255.240", "255.255.255.224", "255.255.255.192", "255.255.255.128",
+        "255.255.255.0", "255.255.254.0", "255.255.252.0", "255.255.248.0",
+        "255.255.240.0", "255.255.224.0", "255.255.192.0", "255.255.128.0",
+        "255.255.0.0", "255.254.0.0", "255.252.0.0", "255.248.0.0",
+        "255.240.0.0", "255.224.0.0", "255.192.0.0", "255.128.0.0",
+        "255.0.0.0", "254.0.0.0", "252.0.0.0", "248.0.0.0",
+        "240.0.0.0", "224.0.0.0", "192.0.0.0", "128.0.0.0",
+        "0.0.0.0"
+    )
 
-        else {
-            Write-Host "Invalid subnet format. Please try again."
-            $newInput = Read-Host "Enter subnet mask (e.g., 255.255.255.0 or /24)"
-            return Detect-SubnetFormat -InputData $newInput  # Recursion for retry
+    # Check if input is a valid dotted decimal subnet mask
+    if ($InputData -match '^((25[0-5]|2[0-4][0-9]|1?[0-9][0-9])\.){3}(25[0-5]|2[0-4][0-9]|1?[0-9][0-9])$') {
+        if ($validMasks -contains $InputData) {
+            Write-Host $InputData
+            return $InputData  # Valid subnet mask
+        } else {
+            Write-Host "Invalid subnet mask detected: $InputData" -ForegroundColor Red
+            throw "Invalid dotted decimal subnet mask."
         }
-    } catch {
-        Write-Host "An error occurred while processing the subnet mask: $_" -ForegroundColor Red
-        throw
+    }
+    # Check if input is in CIDR notation and convert it
+    ElseIf ($InputData -match '^\/([0-9]|[12][0-9]|3[0-2])$') {
+        $cidrValue = $InputData.TrimStart("/")
+        return Convert-SubnetToDottedDecimal -CIDR $cidrValue
+    }
+
+    else {
+        Write-Host "Invalid subnet format. Please try again." -ForegroundColor Red
+        $newInput = Read-Host "Enter subnet mask (e.g., 255.255.255.0 or /24)"
+        return Detect-SubnetFormat -InputData $newInput
     }
 }
 
