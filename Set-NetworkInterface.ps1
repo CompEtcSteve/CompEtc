@@ -45,7 +45,8 @@ function Detect-SubnetFormat {
     )
 
     # Check if input is a valid dotted decimal subnet mask
-    if ($InputData -match '^((25[0-5]|2[0-4][0-9]|1?[0-9][0-9])\.){3}(25[0-5]|2[0-4][0-9]|1?[0-9][0-9])$') {
+    if ($InputData -match '^((255\.){3}(255|254|252|248|240|224|192|128|0))|((255\.){2}(255|254|252|248|240|224|192|128|0)\.0)|((255\.)(255|254|252|248|240|224|192|128|0)(\.0){2})|((255|254|252|248|240|224|192|128|0)(\.0){3})$
+') {
         if ($validMasks -contains $InputData) {
             Write-Host $InputData
             return $InputData  # Valid subnet mask
