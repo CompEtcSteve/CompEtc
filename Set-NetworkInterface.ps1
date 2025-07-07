@@ -48,7 +48,6 @@ function Detect-SubnetFormat {
     if ($InputData -match '^((255\.){3}(255|254|252|248|240|224|192|128|0))|((255\.){2}(255|254|252|248|240|224|192|128|0)\.0)|((255\.)(255|254|252|248|240|224|192|128|0)(\.0){2})|((255|254|252|248|240|224|192|128|0)(\.0){3})$
 ') {
         if ($validMasks -contains $InputData) {
-            Write-Host $InputData
             return $InputData  # Valid subnet mask
         } else {
             Write-Host "Invalid subnet mask detected: $InputData" -ForegroundColor Red
