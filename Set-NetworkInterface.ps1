@@ -127,8 +127,8 @@ function Configure-NetworkAdapter {
         $gateway = Read-Host "Enter the gateway address (e.g., 192.168.1.1) or leave blank"
         $dns1 = Read-Host "Enter the primary DNS server address (e.g., 8.8.8.8) or leave blank"
         if ($dns1) {
-	    $dns2 = Read-Host "Enter the secondary DNS server address (or leave blank if none)"
-     	}
+            $dns2 = Read-Host "Enter the secondary DNS server address (or leave blank if none)"
+        }
 
         Write-Host "Configuring static IP for $($adapter.Name)..."
         Set-NetIPInterface -InterfaceIndex $($adapter.ifIndex) -Dhcp Disabled
