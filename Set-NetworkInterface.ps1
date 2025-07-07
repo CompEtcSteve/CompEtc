@@ -31,21 +31,42 @@ function Detect-SubnetFormat {
         [string]$InputData
     )
 
-    # Check if input is a valid dotted decimal subnet
-    if ($InputData -match '^((25[0-5]|2[0-4][0-9]|1?[0-9][0-9])\.){3}(25[0-5]|2[0-4][0-9]|1?[0-9][0-9])$') {
-        return $InputData  # Correctly formatted dotted decimal
-    }
+    try {
+        # Check if input is a valid dotted decimal subnet
+        if ($InputData -match '^((25[0-5]|2[0-4][0-9]|1?[0-9][0-9])\.){3}(25[0-5]|2[0-4][0-9]|1?[0-9][0-9])$') {
+            # Validate subnet mask further by ensuring it's one of the possible valid masks
+            $validMasks = @(
+                "255.255.255.255", "255.255.255.254", "255.255.255.252", "255.255.255.248",
+                "255.255.255.240", "255.255.255.224", "255.255.255.192", "255.255.255.128",
+                "255.255.255.0", "255.255.254.0", "255.255.252.0", "255.255.248.0",
+                "255.255.240.0", "255.255.224.0", "255.255.192.0", "255.255.128.0",
+                "255.255.0.0", "255.254.0.0", "255.252.0.0", "255.248.0.0",
+                "255.240.0.0", "255.224.0.0", "255.192.0.0", "255.128.0.0",
+                "255.0.0.0", "254.0.0.0", "252.0.0.0", "248.0.0.0",
+                "240.0.0.0", "224.0.0.0", "192.0.0.0", "128.0.0.0",
+                "0.0.0.0"
+            )
+            if ($validMasks -contains $InputData) {
+                return $InputData
+            } else {
+                throw "Invalid dotted decimal subnet mask."
+            }
+        }
 
-    # Check if input is in CIDR notation and convert it
-    elseif ($InputData -match '^\/([0-9]|[12][0-9]|3[0-2])$') {
-        $cidrValue = $InputData.TrimStart("/")
-        return Convert-SubnetToDottedDecimal -CIDR $cidrValue  # Ensure return statement
-    }
+        # Check if input is in CIDR notation and convert it
+        elseif ($InputData -match '^\/([0-9]|[12][0-9]|3[0-2])$') {
+            $cidrValue = $InputData.TrimStart("/")
+            return Convert-SubnetToDottedDecimal -CIDR $cidrValue  # Ensure return statement
+        }
 
-    else {
-        Write-Output "Invalid subnet format. Please try again."
-        $newInput = Read-Host "Enter subnet mask (e.g., 255.255.255.0 or /24)"
-        return Detect-SubnetFormat -InputData $newInput  # Recursion for retry
+        else {
+            Write-Output "Invalid subnet format. Please try again."
+            $newInput = Read-Host "Enter subnet mask (e.g., 255.255.255.0 or /24)"
+            return Detect-SubnetFormat -InputData $newInput  # Recursion for retry
+        }
+    } catch {
+        Write-Host "An error occurred while processing the subnet mask: $_" -ForegroundColor Red
+        throw
     }
 }
 
